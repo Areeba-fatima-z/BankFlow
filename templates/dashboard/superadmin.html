@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Admin — BankFlow</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --brand: #0d5c63;
+            /* deep teal */
+            --brand-dark: #04292e;
+            --accent: #ffb703;
+        }
+
+        body {
+            background: #f4f6f8;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            letter-spacing: .3px;
+        }
+
+        .bg-brand {
+            background: linear-gradient(90deg, var(--brand-dark), var(--brand));
+        }
+
+        /* Dashboard tiles */
+        .tile {
+            border: none;
+            border-radius: 14px;
+            transition: transform .15s ease, box-shadow .15s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, .06);
+            height: 100%;
+        }
+
+        .tile:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(13, 92, 99, .15);
+        }
+
+        .tile .icon-box {
+            width: 52px;
+            height: 52px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            background: rgba(13, 92, 99, .10);
+            color: var(--brand);
+            margin-bottom: 14px;
+        }
+
+        .tile h6 {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .tile .small {
+            color: #7a8a94;
+        }
+
+        .role-badge {
+            background: var(--accent);
+            color: #04292e;
+            font-weight: 600;
+            padding: 3px 12px;
+            border-radius: 20px;
+            font-size: .78rem;
+        }
+
+        .login-card {
+            border: none;
+            border-radius: 18px;
+            box-shadow: 0 12px 40px rgba(4, 41, 46, .12);
+        }
+    </style>
+</head>
+
+<body>
+
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-brand shadow-sm">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-bank2 me-1"></i> BankFlow
+            </a>
+            <div class="navbar-nav ms-auto align-items-center">
+                <span class="role-badge me-3">
+                    Super Admin
+
+                </span>
+                <span class="navbar-text text-white me-3">
+                    <i class="bi bi-person-circle me-1"></i>Admin
+                </span>
+                <a class="btn btn-sm btn-outline-light" href="#">
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                </a>
+            </div>
+        </div>
+    </nav>
+
+
+    <div class="container mt-4">
+
+
+
+        <div class="d-flex justify-content-between align-items-center mb-1">
+            <h3 class="fw-bold mb-0">Super Admin Dashboard</h3>
+        </div>
+        <p class="text-muted">Welcome back, Admin — full system access</p>
+
+        <div class="row g-3 mt-2">
+
+            <div class="col-md-4 col-lg-3">
+                <a href="#" class="text-decoration-none text-dark">
+                    <div class="card tile p-3">
+                        <div class="icon-box"><i class="bi bi-building"></i></div>
+                        <h6>Branches</h6>
+                        <div class="small">Create & manage branches</div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-4 col-lg-3">
+                <a href="#" class="text-decoration-none text-dark">
+                    <div class="card tile p-3">
+                        <div class="icon-box"><i class="bi bi-people"></i></div>
+                        <h6>All Customers</h6>
+                        <div class="small">Across every branch</div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-4 col-lg-3">
+                <a href="#" class="text-decoration-none text-dark">
+                    <div class="card tile p-3">
+                        <div class="icon-box"><i class="bi bi-shield-lock"></i></div>
+                        <h6>Audit Trail</h6>
+                        <div class="small">All system activity</div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-4 col-lg-3">
+                <a href="#" class="text-decoration-none text-dark">
+                    <div class="card tile p-3">
+                        <div class="icon-box"><i class="bi bi-graph-up"></i></div>
+                        <h6>Reports</h6>
+                        <div class="small">All reports & exports</div>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>
