@@ -32,7 +32,7 @@ def login():
             login_user(User(row))
             return redirect(url_for("dashboard"))
         
-        flash("Wrong Username or Password :( ")
+        flash("Wrong Username or Password :( ","danger")
 
     return render_template("login.html")
 

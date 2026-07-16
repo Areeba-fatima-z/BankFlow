@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Accounts BankFlow{% endblock %}
+{% block back_link %}
+<a href="{{ url_for('dashboard') }}" class="text-decoration-none text-muted">
+    <i class="bi bi-arrow-left"></i> Back to Dashboard
+</a>
+{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="fw-bold mb-0">Accounts</h3>
+    {% if current_user.role in ['SUPER_ADMIN', 'MANAGER'] %}
+    <a href="{{ url_for('accounts.open_account') }}" class="btn text-white" style="background: var(--brand);">
+        <i class="bi bi-plus-lg"></i> Open Account
+    </a>
+    {% endif %}
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Account #</th>
+                    <th>Holder</th>
+                    <th>Type</th>
+                    <th class="text-end">Balance</th>
+                    <th>Status</th>
+                    {% if current_user.role in ['SUPER_ADMIN', 'MANAGER'] %}<th>Action</th>{% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for a in accounts %}
+                <tr>
+                    <td class="fw-semibold">{{ a.acc_number }}</td>
+                    <td>{{ a.full_name if a.full_name is defined else '-' }}</td>
+                    <td>{{ a.acc_type }}</td>
+                    <td class="text-end">{{ fmt_money(a.balance) }}</td>
+                    <td>
+                        {% if a.acc_status == 'ACTIVE' %}
+                        <span class="badge bg-success">Active</span>
+                        {% elif a.acc_status == 'FROZEN' %}
+                        <span class="badge bg-info text-dark">Frozen</span>
+                        {% else %}
+                        <span class="badge bg-secondary">Closed</span>
+                        {% endif %}
+                    </td>
+                    {% if current_user.role in ['SUPER_ADMIN', 'MANAGER'] %}
+                    <td>
+                        {% if a.acc_status in ['ACTIVE', 'FROZEN'] %}
+                        <form method="post" action="{{ url_for('accounts.freeze_account', acc_id=a.account_id) }}"
+                            class="d-inline">
+                            <button class="btn btn-sm btn-outline-secondary">
+                                {{ 'Freeze' if a.acc_status == 'ACTIVE' else 'Unfreeze' }}
+                            </button>
+                        </form>
+                        <form method="post" action="{{ url_for('accounts.close_account', acc_id=a.account_id) }}"
+                            class="d-inline" onsubmit="return confirm('Close this account permanently?');">
+                            <button class="btn btn-sm btn-outline-danger">Close</button>
+                        </form>
+                        {% else %}
+                        <span class="text-muted small">—</span>
+                        {% endif %}
+                    </td>
+                    {% endif %}
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="text-center text-muted py-4">No accounts</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

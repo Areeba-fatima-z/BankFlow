@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Open Account BankFlow{% endblock %}
+{% block back_link %}
+<a href="{{ url_for('accounts.list_accounts') }}" class="text-decoration-none text-muted">
+    <i class="bi bi-arrow-left"></i> Back to Accounts
+</a>
+{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <h3 class="fw-bold mb-3">Open Account</h3>
+        <div class="card">
+            <div class="card-body">
+                <form method="post">
+                    <div class="mb-3">
+                        <label class="form-label">Customer</label>
+                        <select name="customer_id" class="form-select" required>
+                            <option value=""> select verified customer </option>
+                            {% for c in customers %}
+                            <option value="{{ c.customer_id }}">{{ c.full_name }} ({{ c.cnic }})</option>
+                            {% endfor %}
+                        </select>
+                        {% if not customers %}
+                        <div class="form-text text-danger">No verified customers available.</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Account Type</label>
+                        <select name="acc_type" class="form-select" required>
+                            <option value="SAVINGS">Savings</option>
+                            <option value="CURRENT">Current</option>
+                        </select>
+                    </div>
+
+                    {% if branches %}
+                    <div class="mb-3">
+                        <label class="form-label">Branch</label>
+                        <select name="branch_id" class="form-select" required>
+                            {% for b in branches %}
+                            <option value="{{ b.branch_id }}">{{ b.branch_name }} ({{ b.city }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    {% endif %}
+
+                    <button class="btn text-white" style="background: var(--brand);">Open Account</button>
+                    <a href="{{ url_for('accounts.list_accounts') }}" class="btn btn-outline-secondary">Cancel</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Customers BankFlow{% endblock %}
+{% block back_link %}
+<a href="{{ url_for('dashboard') }}" class="text-decoration-none text-muted">
+    <i class="bi bi-arrow-left"></i> Back to Dashboard
+</a>
+{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="fw-bold mb-0">Customers</h3>
+    <a href="{{ url_for('customers.add_customer') }}" class="btn text-white" style="background: var(--brand);">
+        <i class="bi bi-plus-lg"></i> Add Customer
+    </a>
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Name</th>
+                    <th>CNIC</th>
+                    <th>Phone</th>
+                    <th>Branch</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in customers %}
+                <tr>
+                    <td class="fw-semibold">{{ c.full_name }}</td>
+                    <td>{{ c.cnic }}</td>
+                    <td>{{ c.phone }}</td>
+                    <td>{{ c.branch_name }}</td>
+                    <td>
+                        {% if c.reg_status == 'VERIFIED' %}
+                        <span class="badge bg-success">Verified</span>
+                        {% elif c.reg_status == 'REJECTED' %}
+                        <span class="badge bg-danger">Rejected</span>
+                        {% else %}
+                        <span class="badge bg-warning text-dark">Pending</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if c.reg_status == 'PENDING' %}
+                        <form method="post" action="{{ url_for('customers.verify_customer', cid=c.customer_id) }}"
+                            class="d-inline">
+                            <input type="hidden" name="status" value="VERIFIED">
+                            <button class="btn btn-sm btn-outline-success">Verify</button>
+                        </form>
+                        <form method="post" action="{{ url_for('customers.verify_customer', cid=c.customer_id) }}"
+                            class="d-inline">
+                            <input type="hidden" name="status" value="REJECTED">
+                            <button class="btn btn-sm btn-outline-danger">Reject</button>
+                        </form>
+                        {% else %}
+                        <span class="text-muted small">--</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="text-center text-muted py-4">No customers yet</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

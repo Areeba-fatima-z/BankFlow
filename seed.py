@@ -54,15 +54,15 @@ u_admin=ins("""INSERT INTO users (username,password_hash,user_role,branch_id,cus
             ("Admin",generate_password_hash("admin123"),"SUPER_ADMIN",None,None))
 
 u_mgr_main=ins("""INSERT INTO users (username,password_hash,user_role,branch_id,customer_id) VALUES (?,?,?,?,?)""",
-            ("Main_manager",generate_password_hash("manager1"),"MANAGER",br_main,None))
+            ("Main manager",generate_password_hash("manager1"),"MANAGER",br_main,None))
 
 u_mgr_lhr=ins("""INSERT INTO users (username,password_hash,user_role,branch_id,customer_id) VALUES (?,?,?,?,?)""",
-            ("lahore_manager",generate_password_hash("manager2"),"MANAGER",br_lhr,None))
+            ("Lahore manager",generate_password_hash("manager2"),"MANAGER",br_lhr,None))
 
 
 
 cust_users={}
-customer_logins = ["areeba", "fatima", "hassan", "ali", "shahan","ayesha","hafsa","maryam","ahmed","sameer"]
+customer_logins = ["Areeba", "Fatima", "Hassan", "Ali", "Shahan","Ayesha","Hafsa","Maryam","Ahmed","Sameer"]
 for i in range(len(cust_ids)):
     uid = ins("INSERT INTO users (username, password_hash, user_role, customer_id) VALUES (?,?,?,?)",
               (customer_logins[i], generate_password_hash(customer_logins[i] + "123"), "CUSTOMER", cust_ids[i]))
@@ -181,7 +181,7 @@ def make_loan(cid,bid,ltype,amount_rs,rate,months,status,months_ago,paid_count=0
 make_loan(cust_ids[0],br_main,"PERSONAL",100000,12.0,12,"ACTIVE",5, paid_count=4)
 make_loan(cust_ids[1],br_main,"CAR",800000,14.5,36,"ACTIVE", 6, paid_count=3) 
 make_loan(cust_ids[2],br_main,"HOME",2500000,10.0,60,"ACTIVE", 4, paid_count=4)
-make_loan(cust_ids[3],br_lhr,"BUSINESS",500000,15.0,24,"APPROVED",1, paid_count=0)
+make_loan(cust_ids[3],br_lhr,"BUSINESS",500000,15.0,24,"ACTIVE",1, paid_count=0)
 make_loan(cust_ids[4],br_lhr,"PERSONAL",50000,0.0,12,"APPLIED",0)
 make_loan(cust_ids[3],br_lhr,"CAR",600000,14.0,24,"REJECTED",2)
     

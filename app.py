@@ -1,3 +1,6 @@
+#sqlite3 bankflow.db < schema.sql
+#python3 seed.py
+# to reset all data
 from flask import Flask ,render_template,redirect,url_for
 from flask_login import login_required ,current_user
 
@@ -15,6 +18,15 @@ app.teardown_appcontext(close_db)
 
 app.register_blueprint(auth_bp)
 
+from routes import customers
+app.register_blueprint(customers.bp)
+from routes import account
+app.register_blueprint(account.bp)
+from routes import transaction
+app.register_blueprint(transaction.bp)
+from routes import loans
+app.register_blueprint(loans.bp)
+
 @app.route("/")
 def home():
     if current_user.is_authenticated:
@@ -31,6 +43,6 @@ def dashboard():
         return render_template("dashboard/manager.html")
     else:
         return render_template("dashboard/customer.html")
-    
+
 if __name__=="__main__":
     app.run(debug=True)

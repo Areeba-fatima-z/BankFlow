@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% block title %}Loan #{{ loan.loan_id }} BankFlow{% endblock %}
+
+{% block back_link %}
+<a href="{{ url_for('loans.list_loans') }}" class="text-decoration-none text-muted">
+    <i class="bi bi-arrow-left"></i> Back to Loans
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="fw-bold mb-0">Loan #{{ loan.loan_id }}</h3>
+    {% if loan.loan_status == 'APPLIED' and current_user.role in ['SUPER_ADMIN','MANAGER'] %}
+    <div>
+        <form method="post" action="{{ url_for('loans.approve_loan', loan_id=loan.loan_id) }}" class="d-inline">
+            <button class="btn btn-success"><i class="bi bi-check-lg"></i> Approve</button>
+        </form>
+        <form method="post" action="{{ url_for('loans.reject_loan', loan_id=loan.loan_id) }}" class="d-inline"
+            onsubmit="return confirm('Reject this loan?');">
+            <button class="btn btn-outline-danger">Reject</button>
+        </form>
+    </div>
+    {% endif %}
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-3 mb-2">
+                <div class="small text-muted">Customer</div>
+                <div class="fw-semibold">{{ loan.full_name }}</div>
+            </div>
+            <div class="col-md-2 mb-2">
+                <div class="small text-muted">Type</div>
+                <div class="fw-semibold">{{ loan.loan_type }}</div>
+            </div>
+            <div class="col-md-2 mb-2">
+                <div class="small text-muted">Amount</div>
+                <div class="fw-semibold">{{ fmt_money(loan.loan_amount) }}</div>
+            </div>
+            <div class="col-md-2 mb-2">
+                <div class="small text-muted">Interest rate</div>
+                <div class="fw-semibold">{{ loan.interest_rate }}% p.a.</div>
+            </div>
+            <div class="col-md-2 mb-2">
+                <div class="small text-muted">Tenure month</div>
+                <div class="fw-semibold">{{ loan.tenure_month }} months</div>
+            </div>
+            <div class="col-md-1 mb-2">
+                <div class="small text-muted">Status</div>
+                {% if loan.loan_status == 'ACTIVE' %}
+                <span class="badge bg-success">Active</span>
+                {% elif loan.loan_status == 'APPLIED' %}
+                <span class="badge bg-warning text-dark">Applied</span>
+                {% elif loan.loan_status == 'REJECTED' %}
+                <span class="badge bg-danger">Rejected</span>
+                {% else %}
+                <span class="badge bg-secondary">{{ loan.loan_status }}</span>
+                {% endif %}
+            </div>
+        </div>
+        {% if loan.emi_amount %}
+        <hr>
+        <div class="d-flex gap-4">
+            <div>
+                <span class="small text-muted">Monthly EMI:</span>
+                <span class="fw-bold" style="color: var(--brand);">{{ fmt_money(loan.emi_amount) }}</span>
+            </div>
+            <div>
+                <span class="small text-muted">Total repayable:</span>
+                <span class="fw-semibold">{{ fmt_money(loan.emi_amount * loan.tenure_month) }}</span>
+            </div>
+            <div>
+                <span class="small text-muted">Approved on:</span>
+                <span class="fw-semibold">{{ loan.decided_at }}</span>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<h5 class="fw-bold mb-2">Repayment Schedule</h5>
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Installment</th>
+                    <th>Due Date</th>
+                    <th class="text-end">Amount Due</th>
+                    <th class="text-end">Paid</th>
+                    <th>Status</th>
+                    {% if pay_accounts %}<th>Action</th>{% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in payments %}
+                <tr>
+                    <td class="fw-semibold">{{ p.installment }}</td>
+                    <td>{{ p.due_date }}</td>
+                    <td class="text-end">{{ fmt_money(p.amount_due) }}</td>
+                    <td class="text-end">{{ fmt_money(p.amount_paid) }}</td>
+                    <td>
+                        {% if p.payment_status == 'PAID' %}
+                        <span class="badge bg-success">Paid</span>
+                        {% elif p.payment_status == 'OVERDUE' %}
+                        <span class="badge bg-danger">Overdue</span>
+                        {% else %}
+                        <span class="badge bg-warning text-dark">Pending</span>
+                        {% endif %}
+                    </td>
+                    {% if pay_accounts %}
+                    <td>
+                        {% if p.payment_status != 'PAID' %}
+
+                        <form method="post"
+                            action="{{ url_for('loans.pay_installment', loan_id=loan.loan_id, payment_id=p.payment_id) }}"
+                            class="d-flex gap-1" onsubmit="return confirm('Pay this installment?');">
+                            <select name="account_id" class="form-select form-select-sm" style="width:auto;" required>
+                                {% for a in pay_accounts %}
+                                <option value="{{ a.account_id }}">{{ a.acc_number }} ({{ fmt_money(a.balance) }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <button class="btn btn-sm text-white" style="background: var(--brand);">Pay</button>
+                        </form>
+                        {% else %}
+                        <span class="text-muted small">-</span>
+                        {% endif %}
+                    </td>
+                    {% endif %}
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="text-center text-muted py-4">
+                        No schedule yet, generated when the loan is approved
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

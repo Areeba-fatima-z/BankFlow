@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Loans BankFlow{% endblock %}
+
+{% block back_link %}
+<a href="{{ url_for('dashboard') }}" class="text-decoration-none text-muted">
+    <i class="bi bi-arrow-left"></i> Back to Dashboard
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="fw-bold mb-0">{{ 'My Loans' if current_user.role == 'CUSTOMER' else 'Loans' }}</h3>
+    {% if current_user.role == 'CUSTOMER' %}
+    <a href="{{ url_for('loans.apply_loans') }}" class="btn text-white" style="background: var(--brand);">
+        <i class="bi bi-plus-lg"></i> Apply for Loan
+    </a>
+    {% endif %}
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    {% if current_user.role != 'CUSTOMER' %}<th>Customer</th>{% endif %}
+                    <th>Type</th>
+                    <th class="text-end">Amount</th>
+                    <th>Rate</th>
+                    <th>Tenure</th>
+                    <th class="text-end">EMI</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for l in loans %}
+                <tr>
+                    <td class="fw-semibold">{{ l.loan_id }}</td>
+                    {% if current_user.role != 'CUSTOMER' %}<td>{{ l.full_name }}</td>{% endif %}
+                    <td>{{ l.loan_type }}</td>
+                    <td class="text-end">{{ fmt_money(l.loan_amount) }}</td>
+                    <td>{{ l.interest_rate }}%</td>
+                    <td>{{ l.tenure_month }} mo</td>
+                    <td class="text-end">{{ fmt_money(l.emi_amount) if l.emi_amount else '-' }}</td>
+                    <td>
+                        {% if l.loan_status == 'ACTIVE' %}
+                        <span class="badge bg-success">Active</span>
+                        {% elif l.loan_status == 'APPLIED' %}
+                        <span class="badge bg-warning text-dark">Applied</span>
+                        {% elif l.loan_status == 'REJECTED' %}
+                        <span class="badge bg-danger">Rejected</span>
+                        {% elif l.loan_status == 'DEFAULTED' %}
+                        <span class="badge bg-dark">Defaulted</span>
+                        {% else %}
+                        <span class="badge bg-secondary">{{ l.loan_status }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{{ url_for('loans.loan_detail', loan_id=l.loan_id) }}"
+                            class="btn btn-sm btn-outline-secondary">View</a>
+                        {% if l.loan_status == 'APPLIED' and current_user.role in ['SUPER_ADMIN','MANAGER'] %}
+                        <form method="post" action="{{ url_for('loans.approve_loan', loan_id=l.loan_id) }}"
+                            class="d-inline">
+                            <button class="btn btn-sm btn-outline-success">Approve</button>
+                        </form>
+                        <form method="post" action="{{ url_for('loans.reject_loan', loan_id=l.loan_id) }}"
+                            class="d-inline" onsubmit="return confirm('Reject this loan?');">
+                            <button class="btn btn-sm btn-outline-danger">Reject</button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="9" class="text-center text-muted py-4">No loans</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
