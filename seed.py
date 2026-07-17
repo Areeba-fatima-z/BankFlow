@@ -146,7 +146,6 @@ conn.execute("""INSERT INTO transactions (account_id,txn_type,amount,balance_aft
 for aid ,bal in balances.items():
     conn.execute("UPDATE accounts SET balance = ? WHERE account_id =?",(bal,aid))
 
-
 # loan - 6
 
 def make_loan(cid,bid,ltype,amount_rs,rate,months,status,months_ago,paid_count=0):

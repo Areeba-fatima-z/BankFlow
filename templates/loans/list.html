@@ -42,7 +42,7 @@
                     <td class="text-end">{{ fmt_money(l.loan_amount) }}</td>
                     <td>{{ l.interest_rate }}%</td>
                     <td>{{ l.tenure_month }} mo</td>
-                    <td class="text-end">{{ fmt_money(l.emi_amount) if l.emi_amount else '-' }}</td>
+                    <td class="text-end">{{ fmt_money(l.emi_amount) if l.emi_amount else 'No EMI (^-^)' }}</td>
                     <td>
                         {% if l.loan_status == 'ACTIVE' %}
                         <span class="badge bg-success">Active</span>

@@ -110,7 +110,6 @@ def close_account(acc_id):
         flash(f"Can't close the account. There's still {fmt_money(account['balance'])} in it. You really gonna leave that behind?","danger")
         return redirect(url_for("accounts.list_accounts"))
 
-    # ab close karo (trigger chalega → audit_log)
     execute("UPDATE accounts SET acc_status = 'CLOSED' WHERE account_id = ?", (acc_id,))
     flash("Account closed. Hope you won't miss it.","warning")
     return redirect(url_for("accounts.list_accounts"))

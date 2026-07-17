@@ -4,7 +4,9 @@ from werkzeug.security import check_password_hash
 from functools import wraps
 from db import query 
 
+
 login_manager=LoginManager()
+
 
 class User(UserMixin):
     def __init__ (self,row):

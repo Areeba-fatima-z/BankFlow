@@ -138,11 +138,11 @@ def approve_loan(loan_id):
               
           conn.commit()
 
-          flash(f"Loan approved : EMI {fmt_money(emi)} x {loan['tenure_month']} months")
+          flash(f"Loan approved : EMI {fmt_money(emi)} x {loan['tenure_month']} months","info")
 
       except Exception as e:
           conn.rollback()
-          flash(f"Approval failed,nothing changed: {e}")
+          flash(f"Approval failed,nothing changed","danger")
 
 
       return redirect(url_for("loans.loan_detail",loan_id=loan_id))
@@ -151,8 +151,8 @@ def approve_loan(loan_id):
 @bp.route("/<int:loan_id>/reject",methods=["POST"])
 @login_required
 @role_required("SUPER_ADMIN","MANAGER")
-def reject_loan(loan_id):
-    loan=query("""SELECT *from loans WHERE loan_id =?""",(loan_id,),one=True)
+def reject_loan(loan_id):    
+    loan=query("""SELECT * from loans WHERE loan_id =?""",(loan_id,),one=True)
 
     if loan is None :
         flash("No loan exists with this id :(" ,"danger")
@@ -199,7 +199,7 @@ def pay_installment(loan_id, payment_id):
         return redirect(url_for("loans.loan_detail", loan_id=loan_id))
 
     if loan["loan_status"] != "ACTIVE":
-        flash(f"Loan is {loan['loan_status']} — cannot pay")
+        flash(f"Loan is {loan['loan_status']} : cannot pay")
         return redirect(url_for("loans.loan_detail", loan_id=loan_id))
 
     account = query("SELECT * FROM accounts WHERE account_id = ?", (account_id,), one=True)
@@ -215,7 +215,7 @@ def pay_installment(loan_id, payment_id):
 
     amount = payment["amount_due"]
     if account["balance"] < amount:
-        flash(f"Insufficient balance — need {fmt_money(amount)}")
+        flash(f"Insufficient balance : need {fmt_money(amount)}")
         return redirect(url_for("loans.loan_detail", loan_id=loan_id))
 
     conn = get_db()
@@ -236,7 +236,7 @@ def pay_installment(loan_id, payment_id):
         conn.execute("""UPDATE loan_payments
                         SET amount_paid = ?, paid_at = datetime('now'),
                             payment_status = 'PAID'
-                        WHERE payment_id = ?""",
+                        WHERE payment_id = ?""",  
                      (amount, payment_id))
 
         remaining = conn.execute("""SELECT COUNT(*) FROM loan_payments
@@ -256,11 +256,6 @@ def pay_installment(loan_id, payment_id):
         flash(f"Payment failed, nothing changed: {e}")
 
     return redirect(url_for("loans.loan_detail", loan_id=loan_id))
-
-
-
-
-
 
 
 

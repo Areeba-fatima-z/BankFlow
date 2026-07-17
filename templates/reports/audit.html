@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}Audit Trail — BankFlow{% endblock %}
+
+{% block back_link %}
+<a href="{{ url_for('dashboard') }}" class="text-decoration-none text-muted">
+    <i class="bi bi-arrow-left"></i> Back to Dashboard
+</a>
+{% endblock %}
+
+{% block content %}
+<h3 class="fw-bold mb-3">Audit Trail</h3>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold">Table</label>
+                <select name="table_name" class="form-select">
+                    <option value="">All tables</option>
+                    <option value="accounts" {% if table_name=='accounts' %}selected{% endif %}>accounts</option>
+                    <option value="loans" {% if table_name=='loans' %}selected{% endif %}>loans</option>
+                    <option value="users" {% if table_name=='users' %}selected{% endif %}>users</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold">From</label>
+                <input type="date" name="from_date" value="{{ from_date }}" class="form-control">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold">To</label>
+                <input type="date" name="to_date" value="{{ to_date }}" class="form-control">
+            </div>
+            <div class="col-md-2">
+                <button class="btn text-white w-100" style="background: var(--brand);">
+                    <i class="bi bi-search"></i> Filter
+                </button>
+            </div>
+            <div class="col-md-1">
+                <a href="{{ url_for('reports.audit_csv', table_name=table_name, from_date=from_date, to_date=to_date) }}"
+                    class="btn btn-outline-success w-100" title="Export CSV">
+                    <i class="bi bi-filetype-csv"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<p class="text-muted small">
+    <i class="bi bi-info-circle"></i>
+    Entries marked <em>System (trigger)</em> were written automatically by database triggers —
+    these fire even for changes made outside the application.
+</p>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>Timestamp</th>
+                    <th>Table</th>
+                    <th>Action</th>
+                    <th class="text-center">Record</th>
+                    <th>Old</th>
+                    <th>New</th>
+                    <th>By</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in rows %}
+                <tr>
+                    <td class="small text-muted">{{ r.log_id }}</td>
+                    <td class="small">{{ r.changed_at[:19] }}</td>
+                    <td><span class="badge bg-secondary">{{ r.table_name }}</span></td>
+                    <td class="small">{{ r.log_action }}</td>
+                    <td class="text-center small">{{ r.record_id }}</td>
+                    <td class="small text-muted">{{ r.old_value or '—' }}</td>
+                    <td class="small fw-semibold">{{ r.new_value or '—' }}</td>
+                    <td class="small">
+                        {# changed_by NULL = trigger ne likha (DB ko session nahi dikhta) #}
+                        {% if r.username %}
+                        {{ r.username }}
+                        {% else %}
+                        <em class="text-muted">System (trigger)</em>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="8" class="text-center text-muted py-4">No audit entries in this period</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

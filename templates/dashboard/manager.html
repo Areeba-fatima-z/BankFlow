@@ -58,5 +58,32 @@
             </div>
         </a>
     </div>
+    <div class="col-md-4 col-lg-3">
+        <a href="{{ url_for('reports.statement') }}" class="text-decoration-none text-dark">
+            <div class="card tile p-3">
+                <div class="icon-box"><i class="bi bi-file-earmark-text"></i></div>
+                <h6>Statements</h6>
+                <div class="small">Account statement + PDF</div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-4 col-lg-3">
+        <a href="{{ url_for('reports.daily_cash') }}" class="text-decoration-none text-dark">
+            <div class="card tile p-3">
+                <div class="icon-box"><i class="bi bi-receipt"></i></div>
+                <h6>Daily Cash</h6>
+                <div class="small">Branch cash report</div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-4 col-lg-3">
+        <a href="{{ url_for('reports.overdue') }}" class="text-decoration-none text-dark">
+            <div class="card tile p-3">
+                <div class="icon-box"><i class="bi bi-exclamation-diamond"></i></div>
+                <h6>Overdue Loans</h6>
+                <div class="small">Defaulter report</div>
+            </div>
+        </a>
+    </div>
 </div>
 {% endblock %}

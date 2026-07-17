@@ -11,6 +11,7 @@ from auth import login_manager,bp as auth_bp
 app=Flask(__name__)
 app.config["SECRET_KEY"]=config.SECRET_KEY
 
+
 login_manager.init_app(app)
 login_manager.login_view="auth.login"
 
@@ -26,12 +27,15 @@ from routes import transaction
 app.register_blueprint(transaction.bp)
 from routes import loans
 app.register_blueprint(loans.bp)
+from routes import reports         
+app.register_blueprint(reports.bp) 
 
 @app.route("/")
 def home():
     if current_user.is_authenticated:
         return redirect(url_for("dashboard"))
     return redirect(url_for("auth.login"))
+
 
 @app.route("/dashboard")
 @login_required
@@ -43,6 +47,7 @@ def dashboard():
         return render_template("dashboard/manager.html")
     else:
         return render_template("dashboard/customer.html")
+
 
 if __name__=="__main__":
     app.run(debug=True)

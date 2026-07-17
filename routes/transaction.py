@@ -159,7 +159,6 @@ def transfer():
     else:
         from_accounts = _accounts_for_dropdown()
  
-    # "To" — koi bhi active account (bheja ja sakta hai kisi ko bhi)
     all_accounts = query("""SELECT a.account_id, a.acc_number, c.full_name
                             FROM accounts a JOIN customers c ON c.customer_id = a.customer_id
                             WHERE a.acc_status = 'ACTIVE' ORDER BY a.acc_number""")

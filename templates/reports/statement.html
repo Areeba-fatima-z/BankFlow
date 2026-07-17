@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block title %}Account Statement — BankFlow{% endblock %}
+
+{% block back_link %}
+<a href="{{ url_for('dashboard') }}" class="text-decoration-none text-muted">
+    <i class="bi bi-arrow-left"></i> Back to Dashboard
+</a>
+{% endblock %}
+
+{% block content %}
+<h3 class="fw-bold mb-3">Account Statement</h3>
+
+{# GET form — POST nahi. URL me params dikhenge, share/bookmark ho sakta #}
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label small fw-semibold">Account</label>
+                <select name="account_id" class="form-select" required>
+                    <option value="">-- select account --</option>
+                    {% for a in accounts %}
+                    <option value="{{ a.account_id }}" {% if account and a.account_id==account.account_id %}selected{%
+                        endif %}>
+                        {{ a.acc_number }} — {{ a.full_name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold">From</label>
+                <input type="date" name="from_date" value="{{ from_date }}" class="form-control">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold">To</label>
+                <input type="date" name="to_date" value="{{ to_date }}" class="form-control">
+            </div>
+            <div class="col-md-2">
+                <button class="btn text-white w-100" style="background: var(--brand);">
+                    <i class="bi bi-search"></i> View
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if account %}
+<div class="card mb-3">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-3">
+                <div class="small text-muted">Account</div>
+                <div class="fw-semibold">{{ account.acc_number }}</div>
+            </div>
+            <div class="col-md-2">
+                <div class="small text-muted">Opening</div>
+                <div class="fw-semibold">{{ fmt_money(opening) }}</div>
+            </div>
+            <div class="col-md-2">
+                <div class="small text-muted">Credits</div>
+                <div class="fw-semibold text-success">+{{ fmt_money(total_in) }}</div>
+            </div>
+            <div class="col-md-2">
+                <div class="small text-muted">Debits</div>
+                <div class="fw-semibold text-danger">−{{ fmt_money(total_out) }}</div>
+            </div>
+            <div class="col-md-3">
+                <div class="small text-muted">Closing</div>
+                <div class="fw-bold" style="color: var(--brand);">{{ fmt_money(closing) }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-2">
+    <h5 class="fw-bold mb-0">Transactions ({{ txns|length }})</h5>
+    {# PDF link me wahi params — isliye report GET hai #}
+    <a href="{{ url_for('reports.statement_pdf', account_id=account.account_id, from_date=from_date, to_date=to_date) }}"
+        class="btn btn-outline-danger btn-sm">
+        <i class="bi bi-file-earmark-pdf"></i> Download PDF
+    </a>
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Date</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                    <th>Ref</th>
+                    <th class="text-end">Amount</th>
+                    <th class="text-end">Balance</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in txns %}
+                <tr>
+                    <td class="small">{{ t.txn_date[:16] }}</td>
+                    <td>
+                        {% if t.txn_type in ['DEPOSIT','TRANSFER_IN'] %}
+                        <span class="badge bg-success">{{ t.txn_type.replace('_',' ').title() }}</span>
+                        {% else %}
+                        <span class="badge bg-danger">{{ t.txn_type.replace('_',' ').title() }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="small">{{ t.txn_desc or '—' }}</td>
+                    <td class="small text-muted">{{ t.ref_no }}</td>
+                    <td
+                        class="text-end {% if t.txn_type in ['DEPOSIT','TRANSFER_IN'] %}text-success{% else %}text-danger{% endif %}">
+                        {{ '+' if t.txn_type in ['DEPOSIT','TRANSFER_IN'] else '−' }}{{ fmt_money(t.amount) }}
+                    </td>
+                    <td class="text-end fw-semibold">{{ fmt_money(t.balance_after) }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="text-center text-muted py-4">No transactions in this period</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% else %}
+<div class="text-center text-muted py-5">
+    <i class="bi bi-file-earmark-text" style="font-size:2.5rem;"></i>
+    <p class="mt-2">Select an account and date range to view the statement</p>
+</div>
+{% endif %}
+{% endblock %}
