@@ -56,10 +56,8 @@ Access is enforced at the route level with `@login_required` and a `@role_requir
 
 | Report | On-screen | PDF | CSV |
 |--------|:---------:|:---:|:---:|
-| Account Statement | ✅ | ✅ | — |
-| Daily Cash Summary | ✅ | — | ✅ |
-| Overdue Loans | ✅ | — | ✅ |
-| Audit Trail | ✅ | — | ✅ |
+| Account Statement | YES | YES | — |
+| Audit Trail | YES | — | YES |
 
 ---
 
