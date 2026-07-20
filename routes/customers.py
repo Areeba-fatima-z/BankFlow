@@ -1,7 +1,8 @@
 from flask import Blueprint,render_template,request,redirect,url_for,flash
-from flask_login import login_required ,current_user
+from flask_login import login_required ,current_user 
 from db import query,execute
 from auth import role_required
+from werkzeug.security import generate_password_hash
 
 
 bp=Blueprint("customers",__name__,url_prefix="/customers")
@@ -85,6 +86,23 @@ def verify_customer(cid):
     
     execute("UPDATE customers SET reg_status = ? WHERE customer_id =?",(new_status,cid))
 
+    if new_status == "VERIFIED":
+        existing = query("SELECT user_id FROM users WHERE customer_id = ?", (cid,), one=True)
+        if existing is None:
+            first = customer["full_name"].strip().split()[0] 
+            username = first
+            password = first + "123"
+
+            n = 2
+            while query("SELECT user_id FROM users WHERE username = ?", (username,), one=True):
+                username = first + str(n)
+                n += 1
+ 
+            execute("""INSERT INTO users (username, password_hash, user_role, customer_id)
+                       VALUES (?, ?, 'CUSTOMER', ?)""", (username, generate_password_hash(password), cid))
+            
+            flash(f"Username created : {username}  Password created : {password}")
+            return redirect(url_for("customer.list_customers"))
     flash(f"Customer Marked {new_status} (^-^)","success")
     return redirect(url_for("customers.list_customers"))
 
