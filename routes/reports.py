@@ -8,14 +8,11 @@ import csv, io
 
 bp = Blueprint("reports", __name__, url_prefix="/reports")
 
-
 def _today():
     return datetime.now().strftime("%Y-%m-%d")
 
-
 def _days_ago(n):
     return (datetime.now() - timedelta(days=n)).strftime("%Y-%m-%d")
-
 
 def _report_accounts():
    
@@ -34,8 +31,8 @@ def _report_accounts():
 
 def _csv_response(header, rows, filename):
 
-    output = io.StringIO()              
-    writer = csv.writer(output)
+    output = io.StringIO()   # create fil in memory           
+    writer = csv.writer(output) # open file to write
     writer.writerow(header)
     writer.writerows(rows)
     return Response(
@@ -80,6 +77,7 @@ def statement():
 
     total_in = sum(t["amount"] for t in txns if t["txn_type"] in ("DEPOSIT", "TRANSFER_IN"))
     total_out = sum(t["amount"] for t in txns if t["txn_type"] in ("WITHDRAWAL", "TRANSFER_OUT"))
+   # negative indexing 
     closing = txns[-1]["balance_after"] if txns else opening
 
     return render_template("reports/statement.html",
@@ -106,8 +104,8 @@ def statement_pdf():
 
     closing = txns[-1]["balance_after"] if txns else opening
 
-    buf = io.BytesIO()       
-    doc = SimpleDocTemplate(buf, pagesize=A4,
+    buf = io.BytesIO()    # binary data in memory for pdf    
+    doc = SimpleDocTemplate(buf, pagesize=A4,          #empty
                             leftMargin=15*mm, rightMargin=15*mm,
                             topMargin=15*mm, bottomMargin=15*mm)
     styles = getSampleStyleSheet()
@@ -127,7 +125,7 @@ def statement_pdf():
                      (t["txn_desc"] or "")[:32], t["ref_no"][:12],
                      fmt_money(t["amount"]), fmt_money(t["balance_after"])])
     if not txns:
-        data.append(["-", "-", "No transactions in this period", "-", "-", "-"])
+        data.append(["-", "-",'-', "No transactions in this period", "-", "-", "-"])
 
     table = Table(data, colWidths=[20*mm, 24*mm, 52*mm, 24*mm, 26*mm, 26*mm])
     table.setStyle(TableStyle([
@@ -151,98 +149,6 @@ def statement_pdf():
     return Response(buf.getvalue(), mimetype="application/pdf",
                     headers={"Content-Disposition":
                              f"attachment; filename=statement_{account['acc_number']}.pdf"})
-
-def _daily_cash_data():
-    from_date = request.args.get("from_date") or _days_ago(7)
-    to_date = request.args.get("to_date") or _today()
-
-    sql = """SELECT date(t.txn_date) AS day,
-                    COUNT(*) AS txn_count,
-                    SUM(CASE WHEN t.txn_type = 'DEPOSIT'      THEN t.amount ELSE 0 END) AS deposits,
-                    SUM(CASE WHEN t.txn_type = 'WITHDRAWAL'   THEN t.amount ELSE 0 END) AS withdrawals,
-                    SUM(CASE WHEN t.txn_type = 'TRANSFER_IN'  THEN t.amount ELSE 0 END) AS transfers_in,
-                    SUM(CASE WHEN t.txn_type = 'TRANSFER_OUT' THEN t.amount ELSE 0 END) AS transfers_out
-             FROM transactions t
-             JOIN accounts a ON a.account_id = t.account_id
-             WHERE date(t.txn_date) BETWEEN ? AND ?"""
-    if current_user.role == "MANAGER":
-        sql += " AND a.branch_id = ?"
-        params = (from_date, to_date, current_user.branch_id)
-    else:
-        params = (from_date, to_date)
-    sql += " GROUP BY date(t.txn_date) ORDER BY day DESC"
-
-    return query(sql, params), from_date, to_date
-
-
-@bp.route("/daily-cash")
-@login_required
-@role_required("SUPER_ADMIN", "MANAGER")      
-def daily_cash():
-    rows, from_date, to_date = _daily_cash_data()
-    total_dep = sum(r["deposits"] for r in rows)
-    total_wd = sum(r["withdrawals"] for r in rows)
-    return render_template("reports/daily_cash.html", rows=rows,
-                           from_date=from_date, to_date=to_date,
-                           total_dep=total_dep, total_wd=total_wd,
-                           fmt_money=fmt_money)
-
-
-@bp.route("/daily-cash/csv")
-@login_required
-@role_required("SUPER_ADMIN", "MANAGER")      
-def daily_cash_csv():
-    rows, _, _ = _daily_cash_data()
-    data = [[r["day"], r["txn_count"], fmt_money(r["deposits"]), fmt_money(r["withdrawals"]),
-             fmt_money(r["transfers_in"]), fmt_money(r["transfers_out"]),
-             fmt_money(r["deposits"] - r["withdrawals"])] for r in rows]
-    return _csv_response(["Date", "Transactions", "Deposits", "Withdrawals",
-                          "Transfers In", "Transfers Out", "Net Cash"],
-                         data, "daily_cash.csv")
-
-def _overdue_data():
-    sql = """SELECT lp.installment, lp.due_date, lp.amount_due, lp.payment_status,
-                    l.loan_id, l.loan_type, l.loan_amount, l.emi_amount,
-                    c.full_name, c.phone, c.cnic, b.branch_name,
-                    CAST(julianday('now') - julianday(lp.due_date) AS INTEGER) AS days_overdue
-             FROM loan_payments lp
-             JOIN loans l     ON l.loan_id = lp.loan_id
-             JOIN customers c ON c.customer_id = l.customer_id
-             JOIN branches b  ON b.branch_id = l.branch_id
-             WHERE lp.payment_status != 'PAID'
-               AND date(lp.due_date) < date('now')"""
-
-    if current_user.role == "MANAGER":
-        sql += " AND l.branch_id = ?"
-        params = (current_user.branch_id,)
-    else:
-        params = ()
-    sql += " ORDER BY days_overdue DESC"
-    return query(sql, params)
-
-
-@bp.route("/overdue")
-@login_required
-@role_required("SUPER_ADMIN", "MANAGER")
-def overdue():
-    rows = _overdue_data()
-    total = sum(r["amount_due"] for r in rows)
-    return render_template("reports/overdue.html", rows=rows, total=total,
-                           fmt_money=fmt_money)
-
-
-@bp.route("/overdue/csv")
-@login_required
-@role_required("SUPER_ADMIN", "MANAGER")
-def overdue_csv():
-    rows = _overdue_data()
-    data = [[r["loan_id"], r["full_name"], r["cnic"], r["phone"], r["branch_name"],
-             r["loan_type"], r["installment"], r["due_date"],
-             fmt_money(r["amount_due"]), r["days_overdue"]] for r in rows]
-    return _csv_response(["Loan ID", "Customer", "CNIC", "Phone", "Branch", "Type",
-                          "Installment", "Due Date", "Amount Due", "Days Overdue"],
-                         data, "overdue_loans.csv")
-
 
 def _audit_data():
     table_name = request.args.get("table_name") or ""
@@ -283,3 +189,4 @@ def audit_csv():
     return _csv_response(["Log ID", "Timestamp", "Table", "Action", "Record ID",
                           "Old Value", "New Value", "Changed By"],
                          data, "audit_trail.csv")
+
