@@ -29,6 +29,8 @@ from routes import loans
 app.register_blueprint(loans.bp)
 from routes import reports         
 app.register_blueprint(reports.bp) 
+from routes import forex             
+app.register_blueprint(forex.bp)
 
 @app.route("/")
 def home():

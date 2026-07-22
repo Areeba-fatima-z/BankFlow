@@ -102,7 +102,7 @@ def verify_customer(cid):
                        VALUES (?, ?, 'CUSTOMER', ?)""", (username, generate_password_hash(password), cid))
             
             flash(f"Username created : {username}  Password created : {password}")
-            return redirect(url_for("customer.list_customers"))
+            return redirect(url_for("customers.list_customers"))
     flash(f"Customer Marked {new_status} (^-^)","success")
     return redirect(url_for("customers.list_customers"))
 

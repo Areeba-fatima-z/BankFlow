@@ -3,7 +3,7 @@ from flask_login import login_required, current_user
 from db import query, execute, get_db
 from auth import role_required, check_account_access
 from helper import to_paisa, fmt_money, gen_ref_no
- 
+from services.email import notify_transaction
 
 bp = Blueprint("transactions", __name__, url_prefix="/txn")
 
@@ -33,7 +33,11 @@ def deposit():
         execute(""" INSERT INTO transactions (account_id,txn_type,amount,balance_after,ref_no,txn_desc,created_by) VALUES (?,?,?,?,?,?,? ) """,
                 (account_id,'DEPOSIT',amount,new_balance,gen_ref_no(),"Counter Deposit",current_user.id))
         
- 
+        info = query("""SELECT c.full_name, c.email FROM accounts a
+                JOIN customers c ON c.customer_id = a.customer_id
+                WHERE a.account_id = ?""", (account_id,), one=True)
+        notify_transaction(info["email"], info["full_name"], "DEPOSIT", amount, new_balance, account["acc_number"])
+
         flash(f"Deposited {fmt_money(amount)} (^-^) ","info")
         return redirect(url_for("transactions.deposit"))
  
@@ -72,7 +76,13 @@ def withdraw():
                    VALUES (?, ?, ?, ?, ?, ?, ?)""",
                 (account_id, "WITHDRAWAL", amount, new_balance, gen_ref_no(),
                  "Counter withdrawal", current_user.id))
- 
+
+        info = query("""SELECT c.full_name, c.email FROM accounts a
+                JOIN customers c ON c.customer_id = a.customer_id
+                WHERE a.account_id = ?""", (account_id,), one=True)
+        
+        notify_transaction(info["email"], info["full_name"], "WITHDRAWAL", amount, new_balance, account["acc_number"])
+
         flash(f"Withdrew {fmt_money(amount)} (^-^)","info")
         return redirect(url_for("transactions.withdraw"))
  
@@ -144,12 +154,29 @@ def transfer():
                 (to_id, "TRANSFER_IN", amount, new_to, ref, from_id,
                  f"Transfer from {frm['acc_number']}", current_user.id))
  
-            conn.commit()         
+            conn.commit()   
+
+
+                
             flash(f"Transferred {fmt_money(amount)} successfully (^-^)","success")
         except Exception as e:
             conn.rollback() 
             flash(f"Transfer failed, Expecetd banking experience in Pakistan :) ","danger")
- 
+
+        try:
+            info_from = query("""SELECT c.full_name, c.email FROM accounts a
+                         JOIN customers c ON c.customer_id = a.customer_id
+                         WHERE a.account_id = ?""", (from_id,), one=True)
+            notify_transaction(info_from["email"], info_from["full_name"], "TRANSFER_OUT",
+                       amount, new_from, frm["acc_number"])
+
+            info_to = query("""SELECT c.full_name, c.email FROM accounts a
+                       JOIN customers c ON c.customer_id = a.customer_id
+                       WHERE a.account_id = ?""", (to_id,), one=True)
+            notify_transaction(info_to["email"], info_to["full_name"], "TRANSFER_IN",
+                       amount, new_to, to["acc_number"])
+        except Exception:
+            pass 
         return redirect(url_for("transactions.transfer"))
  
     if current_user.role == "CUSTOMER":

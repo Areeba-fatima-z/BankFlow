@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Conversion History BankFlow{% endblock %}
+
+{% block back_link %}
+<a href="{{ url_for('forex.convert') }}" class="text-decoration-none text-muted">
+    <i class="bi bi-arrow-left"></i> Back to Exchange
+</a>
+{% endblock %}
+
+{% block content %}
+<h3 class="fw-bold mb-3">Conversion History</h3>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Date</th>
+                    {% if current_user.role != 'CUSTOMER' %}<th>Customer</th>{% endif %}
+                    <th>Account</th>
+                    <th class="text-end">From (PKR)</th>
+                    <th>To</th>
+                    <th class="text-end">Converted</th>
+                    <th class="text-end">Rate</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in rows %}
+                <tr>
+                    <td class="small">{{ r.converted_at[:16] }}</td>
+                    {% if current_user.role != 'CUSTOMER' %}<td>{{ r.full_name }}</td>{% endif %}
+                    <td class="small">{{ r.acc_number }}</td>
+                    <td class="text-end">{{ fmt_money(r.from_amount) }}</td>
+                    <td><span class="badge bg-secondary">{{ r.to_currency }}</span></td>
+                    <td class="text-end fw-semibold">{{ '%0.2f'|format(r.to_amount) }} {{ r.to_currency }}</td>
+                    <td class="text-end small text-muted">{{ '%.6f'|format(r.rate) }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center text-muted py-4">No conversions yet</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

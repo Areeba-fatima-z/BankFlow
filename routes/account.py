@@ -3,7 +3,7 @@ from flask_login import login_required, current_user
 from db import query, execute
 from auth import role_required, check_account_access
 from helper import fmt_money
-
+from services.email import notify_account_created
 
 bp=Blueprint("accounts",__name__,url_prefix="/accounts")
 
@@ -49,12 +49,19 @@ def open_account():
         acc_num = f"PK-{code}-{n+1:06d}"
        
         try:
-            execute(""" INSERT INTO accounts ( customer_id,branch_id,acc_number,acc_type,balance ) VALUES (?,?,?,?,?) """,
-                    ( customer_id,branch_id, acc_num,acc_type,0))
-            flash("Account opened. Enjoy your journey with BankFlow (^-^)","success")
-            return redirect(url_for("accounts.list_accounts"))
-        except Exception as e:
-            flash(f"Couldn't open the account. Something's definitely off.","danger")
+          customer = query("SELECT full_name, email FROM customers WHERE customer_id = ?",
+                     (customer_id,), one=True)
+
+          execute(""" INSERT INTO accounts (customer_id,branch_id,acc_number,acc_type,balance) VALUES (?,?,?,?,?) """,
+            (customer_id, branch_id, acc_num, acc_type, 0))
+
+   
+          notify_account_created(customer["email"], customer["full_name"], acc_num, acc_type)
+
+          flash("Account opened. Enjoy your journey with BankFlow (^-^)", "success")
+          return redirect(url_for("accounts.list_accounts"))
+        except Exception:
+          flash(f"Couldn't open the account. Something's definitely off.", "danger")
  
     if current_user.role == "MANAGER":
         customers = query(""" SELECT * FROM customers

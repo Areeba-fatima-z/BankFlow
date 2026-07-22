@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Currency Exchange BankFlow{% endblock %}
+
+{% block back_link %}
+<a href="{{ url_for('dashboard') }}" class="text-decoration-none text-muted">
+    <i class="bi bi-arrow-left"></i> Back to Dashboard
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="fw-bold mb-0">Currency Exchange</h3>
+    <a href="{{ url_for('forex.history') }}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-clock-history"></i> History
+    </a>
+</div>
+
+
+{% if result %}
+<div class="card mb-3 border-success">
+    <div class="card-body text-center py-4">
+        <div class="text-muted small">{{ result.acc_number }}</div>
+        <div class="h4 mb-1">{{ fmt_money(result.from_amount) }}</div>
+        <div class="text-muted"><i class="bi bi-arrow-down"></i></div>
+        <div class="h2 fw-bold" style="color: var(--brand);">
+            {{ '%0.2f'|format(result.converted) }} {{ result.to_currency }}
+        </div>
+        <div class="small text-muted mt-2">
+            Rate used: 1 {{ base }} = {{ '%.6f'|format(result.rate) }} {{ result.to_currency }}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="row justify-content-center">
+    <div class="col-md-7">
+        <div class="card">
+            <div class="card-body">
+                <form method="post">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Account</label>
+                        <select name="account_id" class="form-select" required>
+                            <option value=""> select account </option>
+                            {% for a in accounts %}
+                            <option value="{{ a.account_id }}">
+                                {{ a.acc_number }} -- {{ a.full_name }} ({{ fmt_money(a.balance) }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Convert to</label>
+                        <select name="to_currency" class="form-select" required>
+                            <option value=""> select currency </option>
+                            {% for cur in supported %}
+                            <option value="{{ cur }}">{{ cur }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button class="btn text-white w-100" style="background: var(--brand);">
+                        <i class="bi bi-currency-exchange"></i> Convert
+                    </button>
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

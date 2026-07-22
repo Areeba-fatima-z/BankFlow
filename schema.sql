@@ -25,6 +25,7 @@ CREATE TABLE customers(
     full_name TEXT NOT NULL,
     cnic TEXT UNIQUE NOT NULL,
     phone TEXT,
+    email TEXT,
     cust_address TEXT,
     reg_status TEXT NOT NULL DEFAULT 'PENDING' CHECK(reg_status IN('PENDING','VERIFIED','REJECTED')),
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
@@ -116,6 +117,22 @@ CREATE TABLE audit_log(
     changed_at TEXT NOT NULL DEFAULT (datetime('now')),
     FOREIGN KEY (changed_by) REFERENCES users(user_id)
 );
+
+CREATE TABLE conversion_history (
+    conv_id        INTEGER PRIMARY KEY,
+    account_id     INTEGER NOT NULL,
+    from_currency  TEXT NOT NULL DEFAULT 'PKR',
+    to_currency    TEXT NOT NULL,
+    from_amount    INTEGER NOT NULL,         
+    to_amount      REAL NOT NULL,            
+    rate           REAL NOT NULL,             
+    converted_by   INTEGER NOT NULL,
+    converted_at   TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (account_id)   REFERENCES accounts(account_id),
+    FOREIGN KEY (converted_by) REFERENCES users(user_id)
+);
+
+
 
 
 ---------------------------
