@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Fraud Reports BankFlow{% endblock %}
+
+{% block back_link %}
+<a href="{{ url_for('dashboard') }}" class="text-decoration-none text-muted">
+    <i class="bi bi-arrow-left"></i> Back to Dashboard
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="fw-bold mb-0">Fraud Reports</h3>
+    <a href="{{ url_for('fraud.reports_api') }}" class="btn btn-outline-secondary btn-sm" target="_blank">
+        <i class="bi bi-code-slash"></i> View as JSON
+    </a>
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Detected</th>
+                    <th>Rule</th>
+                    <th>Account</th>
+                    <th>Customer</th>
+                    <th class="text-end">Amount</th>
+                    <th>Details</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in rows %}
+                <tr>
+                    <td class="small">{{ r.detected_at[:16] }}</td>
+                    <td>
+                        {% if r.rule_triggered == 'OVERDRAFT_ATTEMPT' %}
+                        <span class="badge bg-danger">Overdraft Attempt</span>
+                        {% elif r.rule_triggered == 'EXCESSIVE_WITHDRAWALS' %}
+                        <span class="badge bg-warning text-dark">Excessive Withdrawals</span>
+                        {% elif r.rule_triggered == 'DAILY_LIMIT_EXCEEDED' %}
+                        <span class="badge bg-warning text-dark">Daily Limit</span>
+                        {% else %}
+                        <span class="badge bg-dark">Large Transfer</span>
+                        {% endif %}
+                    </td>
+                    <td class="small">{{ r.acc_number }}</td>
+                    <td>{{ r.full_name }}</td>
+                    <td class="text-end small">{{ '%.2f'|format((r.amount or 0)/100) if r.amount else '-' }}</td>
+                    <td class="small text-muted">{{ r.details }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="text-center text-muted py-4">
+                        <i class="bi bi-shield-check text-success"></i> No suspicious activity detected
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

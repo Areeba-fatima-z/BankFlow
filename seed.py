@@ -23,11 +23,11 @@ br_main= ins("INSERT INTO branches (branch_code,branch_name,city) VALUES (?,?,?)
 br_lhr= ins("INSERT INTO branches (branch_code,branch_name,city) VALUES (?,?,?)",("BR2","Lahore Branch","Lahore"))
 
 cust_data=[(br_main,"Areeba","34101-1234567-8","0340-4444444","Rachna Town, Faisalabad","bahar.imaan@gmail.com","VERIFIED"),
-           (br_main,"Fatima","34101-1243597-6","0345-3333333","Madina Town, Faisalabad","fatima@example.com","VERIFIED"),
+           (br_main,"Fatima","34101-1243597-6","0345-3333333","Madina Town, Faisalabad","f240507@cfd.nu.edu.pk","VERIFIED"),
            (br_lhr,"Hassan", "34101-1437567-9","0300-2222222","Model Town, Lahore","hassan@example.com","PENDING"),
            (br_lhr,"Ali",   "34101-1859438-7","0345-7666200","DHA Phase 5, Lahore","ali@example.com","VERIFIED"),
-           (br_main,"Shahan","34101-1324657-1","0300-2345617","Faisal Town, Islamabad","shahan@example.com","VERIFIED"),
-           (br_lhr,"Ayesha","34101-7652341-4", "0300-3333776","Johar Town, Lahore","ayesha@example.com","VERIFIED"),
+           (br_main,"Shahan","34101-1324657-1","0300-2345617","Faisal Town, Islamabad","f240619@cfd.nu.edu.pk","VERIFIED"),
+           (br_lhr,"Ayesha","34101-7652341-4", "0300-3333776","Johar Town, Lahore","240565@cfd.nu.edu.pk","VERIFIED"),
            (br_lhr,"Hafsa","34101-1263567-2",  "0340-5555553","Lake City, Lahore","hafsa@example.com","PENDING"),
            (br_main,"Maryam","34101-1279567-8","0340-1122111","Bahria Town, Islamabad","maryam@example.com","VERIFIED"),
            (br_lhr,"Ahmed","34101-1238723-5",  "0300-1111111","Gulberg II, Lahore","ahmed@example.com","VERIFIED"),

@@ -1,7 +1,9 @@
 -----------------
 -- TABLES - 8
 -----------------
-
+DROP TABLE IF EXISTS interest_history;
+DROP TABLE IF EXISTS conversion_history;
+DROP TABLE IF EXISTS fraud_log;
 DROP TABLE IF EXISTS audit_log;
 DROP TABLE IF EXISTS loan_payments;
 DROP TABLE IF EXISTS loans;
@@ -67,7 +69,7 @@ CREATE TABLE transactions (
     ref_no TEXT NOT NULL,
     related_account INTEGER,
     txn_desc TEXT,
-    created_by INTEGER NOT NULL,
+    created_by INTEGER,
     txn_date TEXT NOT NULL DEFAULT (datetime('now')),
     FOREIGN KEY (account_id) REFERENCES accounts(account_id),
     FOREIGN KEY (related_account) REFERENCES accounts (account_id),
@@ -132,9 +134,31 @@ CREATE TABLE conversion_history (
     FOREIGN KEY (converted_by) REFERENCES users(user_id)
 );
 
+CREATE TABLE fraud_log(
+    fraud_id INTEGER PRIMARY KEY,
+    account_id INTEGER NOT NULL,
+    rule_triggered TEXT NOT NULL CHECK (rule_triggered IN ('EXCESSIVE_WITHDRAWALS','OVERDRAFT_ATTEMPT','DAILY_LIMIT_EXCEEDED','LARGE_TRANSFER')),
+    amount  INTEGER ,
+    details TEXT NOT NULL,
+    detected_at TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (account_id) REFERENCES accounts (account_id) 
+);
+
+CREATE TABLE interest_history(
+    interest_id INTEGER PRIMARY KEY,
+    account_id INTEGER NOT NULL,
+    balance_before INTEGER NOT NULL,
+    balance_after INTEGER NOT NULL,
+    rate_applied REAL NOT NULL,
+    interest_amount INTEGER NOT NULL,
+    int_period TEXT NOT NULL,
+    calculated_at TEXT NOT NULL DEFAULT (datetime('now')),
+
+    FOREIGN KEY (account_id)  REFERENCES accounts (account_id),
+    UNIQUE (account_id,int_period)
 
 
-
+);
 ---------------------------
 -- TRIGGERS
 --------------------------- 

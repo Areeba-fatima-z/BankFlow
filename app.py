@@ -3,7 +3,9 @@
 # to reset all data
 from flask import Flask ,render_template,redirect,url_for
 from flask_login import login_required ,current_user
-
+import os
+from apscheduler.schedulers.background import BackgroundScheduler
+from services.interest import run_interest_job
 import config
 from db import close_db
 from auth import login_manager,bp as auth_bp
@@ -31,6 +33,11 @@ from routes import reports
 app.register_blueprint(reports.bp) 
 from routes import forex             
 app.register_blueprint(forex.bp)
+from routes import fraud
+app.register_blueprint(fraud.bp)
+from routes import interest
+app.register_blueprint(interest.bp)
+
 
 @app.route("/")
 def home():
@@ -49,6 +56,17 @@ def dashboard():
         return render_template("dashboard/manager.html")
     else:
         return render_template("dashboard/customer.html")
+
+
+def scheduled_job():
+    with app.app_context:
+        result=run_interest_job()
+        print(f"[SCHEDULER] Interest job ran : {result}")
+
+if os.environ.get("WERKZEUG_RUN_MAIN") == "true" or not app.debug:
+    scheduler=BackgroundScheduler()
+    scheduler.add_job(func=scheduled_job,trigger="interval",days=1)  # demo minutes=2
+    scheduler.start()
 
 
 if __name__=="__main__":

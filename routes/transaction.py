@@ -4,6 +4,8 @@ from db import query, execute, get_db
 from auth import role_required, check_account_access
 from helper import to_paisa, fmt_money, gen_ref_no
 from services.email import notify_transaction
+from services.fraud import check_daily_limit,check_excessive_withdrawals,check_large_transfer,check_overdraft_attempt
+
 
 bp = Blueprint("transactions", __name__, url_prefix="/txn")
 
@@ -65,6 +67,7 @@ def withdraw():
             return redirect(url_for("transactions.withdraw"))
  
         if account["balance"] < amount:
+            check_overdraft_attempt(account,amount)
             flash("Insufficient balance :( ","danger")
             return redirect(url_for("transactions.withdraw"))
  
@@ -76,6 +79,12 @@ def withdraw():
                    VALUES (?, ?, ?, ?, ?, ?, ?)""",
                 (account_id, "WITHDRAWAL", amount, new_balance, gen_ref_no(),
                  "Counter withdrawal", current_user.id))
+
+        try :
+            check_excessive_withdrawals(account_id)
+            check_daily_limit(account_id,account["acc_number"])
+        except Exception:
+            pass
 
         info = query("""SELECT c.full_name, c.email FROM accounts a
                 JOIN customers c ON c.customer_id = a.customer_id
@@ -130,11 +139,13 @@ def transfer():
             return redirect(url_for("transactions.transfer"))
  
         if frm["balance"] < amount:
+            check_overdraft_attempt(frm , amount)
             flash("Insufficient balance. It's okay, don't be sad :( ","danger")
             return redirect(url_for("transactions.transfer"))
  
         conn = get_db()
-        ref = gen_ref_no()         
+        ref = gen_ref_no()   
+        transfer_ok =False      
         try:
             new_from = frm["balance"] - amount
             new_to   = to["balance"] + amount
@@ -155,15 +166,14 @@ def transfer():
                  f"Transfer from {frm['acc_number']}", current_user.id))
  
             conn.commit()   
-
-
+            transfer_ok =True
                 
             flash(f"Transferred {fmt_money(amount)} successfully (^-^)","success")
         except Exception as e:
             conn.rollback() 
             flash(f"Transfer failed, Expecetd banking experience in Pakistan :) ","danger")
-
-        try:
+        if transfer_ok:
+          try:
             info_from = query("""SELECT c.full_name, c.email FROM accounts a
                          JOIN customers c ON c.customer_id = a.customer_id
                          WHERE a.account_id = ?""", (from_id,), one=True)
@@ -175,8 +185,16 @@ def transfer():
                        WHERE a.account_id = ?""", (to_id,), one=True)
             notify_transaction(info_to["email"], info_to["full_name"], "TRANSFER_IN",
                        amount, new_to, to["acc_number"])
-        except Exception:
+          except Exception:
             pass 
+
+          try:
+            check_daily_limit(from_id,frm["acc_number"])
+            check_large_transfer(from_id,amount,frm["acc_number"])
+
+          except Exception:
+            pass
+
         return redirect(url_for("transactions.transfer"))
  
     if current_user.role == "CUSTOMER":
